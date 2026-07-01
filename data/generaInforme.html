@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PEPPE - Gráficos estadísticos</title>
+  <script src="./chart.js"></script>
+  <link rel="stylesheet" href="./estilos.css">
+  <script src="./chartjs-plugin-datalabels.js"></script>
+  <script src="./chartjs_annotation_min.js"></script>
+</head>
+<body>
+  <h3 style="text-align: center; padding: 2px;">Informe de Rendimiento - PEPPE</h3>
+  <div id="header" style="display: list-item; justify-content: space-between; align-items: center; width: 100%;">
+  <!-- Primera columna: Botones alineados a la izquierda -->
+      <div style="display: flex; gap: 50px; text-align: left; width:80%;">
+          <div class="header-item" style="width: 45%";> 
+              <input type="file" class="oculto-impresion" id="fileInput" accept=".csv" />
+          </div>
+          <div class="header-item" >Fecha de la Práctica: <span id="fecha"></span>
+          </div>
+      </div>
+
+      <!-- Segunda columna: Información centrada -->
+      <div style="display: flex; gap: 50px; text-align: left; width:80%;margin-top: 10px;">
+        <div class="header-item" style="width: 45%";> 
+          <button onclick="javascript:imprimir()" class="oculto-impresion">Imprimir Resultados</button>
+        </div>  
+        <div class="header-item" >Estudiante: <span id="usuario"></span></div>
+      </div>
+  </div>
+
+
+  
+  <div style="width: 100%; height:100%; text-align: center; background-color: #ffffff;">
+    <!-- Contenedores de los gráficos -->
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; margin-top: 40px;">
+      <div style="width: 45%; text-align: center;">
+        <h3>Desempeño General</h3>
+        <canvas id="lineChart" width="300" height="100"></canvas>
+      </div>
+      <div style="width: 45%; text-align: center;">
+        <h3>Estadísticas Generales</h3>
+        <canvas id="barPromedioChart" width="300" height="100"></canvas>
+      </div>
+      <div style="width: 45%; text-align: center; margin-top: 20px;">
+        <h3>Estadísticas Insuflación</h3>
+        <canvas id="barVentilacionChart" width="300" height="100"></canvas>  
+      </div>
+      <div style="width: 45%; text-align: center; margin-top: 20px;">
+        <h3>Ritmo de Presiones cada 30 segundos</h3>
+        <canvas id="lineRitmoChart" width="300" height="100"></canvas>  
+      </div>    
+    </div>
+  </div>
+
+  <script>
+    fileInput.addEventListener('change', function () {
+      if (fileInput.files.length > 0) {
+        const fileName = fileInput.files[0].name; // Obtener nombre del archivo con extensión
+        const fileNameWithoutExt = fileName.substring(0, fileName.lastIndexOf(".")) || fileName; // Quitar la extensión
+        document.getElementById('usuario').textContent = fileNameWithoutExt; // Mostrar en HTML
+      }
+    });
+
+    const lineChartCtx = document.getElementById('lineChart').getContext('2d');
+    const barPromedioChartCtx = document.getElementById('barPromedioChart').getContext('2d');
+    const barVentilacionChartCtx = document.getElementById('barVentilacionChart').getContext('2d');
+    const lineRitmoChartCtx = document.getElementById('lineRitmoChart').getContext('2d');
+
+    let chartInstance; // Variable para el gráfico de línea
+    let chartInstancePromedio; // Variable para el gráfico de barras
+    let barVentilacionChart;
+    let lineRitmoChart;
+    let globCantidadPresiones = 0;
+
+    // Función para calcular la moda de un conjunto de datos
+    function calcularModa(valores) {
+      const frecuencia = {};
+      let moda = valores[0];
+      let maxFrecuencia = 0;
+
+      valores.forEach(valor => {
+        frecuencia[valor] = (frecuencia[valor] || 0) + 1;
+        if (frecuencia[valor] > maxFrecuencia) {
+          maxFrecuencia = frecuencia[valor];
+          moda = valor;
+        }
+      });
+
+      return moda;
+    }
+
+    function imprimir() {
+      window.print();
+    }
+
+    // Función para procesar el archivo CSV
+    function procesarArchivoCSV(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          const data = event.target.result;
+          const filas = data.split('\n').slice(1); // Omitir cabecera
+          if (filas.length < 2) {
+            reject("El archivo no tiene suficientes registros.");
+            return;
+          }
+
+          const columnasSegundaFila = filas[1].split(';'); 
+          const fecha = columnasSegundaFila[0]; 
+          const horas = [];
+          const valores = [];
+
+          // Buscar el renglón de ResumenVentilacion (8888) y ResumenPresiones30 (9999)
+          const resumenVentilacion = filas.find(fila => fila.includes("8888"));
+          const resumenPresiones30 = filas.find(fila => fila.includes("9999"));
+
+          if (!resumenVentilacion || !resumenPresiones30) {
+            reject("No se encontraron los datos de resumen.");
+            return;
+          }
+
+          // Extraer datos de ResumenVentilacion
+          const datosVentilacion = resumenVentilacion.split(';');
+          const airePromedioVentilado = parseFloat(datosVentilacion[4]);
+          const divduracionFlujoAire = parseFloat(datosVentilacion[5]);
+          const divtotalVentilaciones = parseFloat(datosVentilacion[6]);
+          const divtiempoPromedioEntreVentilaciones = parseFloat(datosVentilacion[7]);
+          //4.2 2.6 5 9
+          // Extraer datos de ResumenPresiones30
+          const datosPresiones30 = resumenPresiones30.split(';');
+          const ritmoPresiones = datosPresiones30[4].split(',').map(Number);
+
+          // Procesar todas las filas excepto las últimas dos (resúmenes)
+          for (let i = 0; i < filas.length - 2; i++) {
+            const fila = filas[i];
+            const columnas = fila.split(';');
+            const hora = columnas[1];  
+            const valor = parseFloat(columnas[3]); // 4ta  col (Valor)
+            console.log("valor ",valor);
+            
+            const tipoLectura = columnas[4];
+
+            if (hora && !isNaN(valor)) {
+              /*let fechahora = columnas[1].split(",");
+              const fecha=fechahora[0];
+              console.log(" fechahora[0] ", fechahora[0]);
+
+              const [h, m] = fechahora[1].split(':');
+              
+              console.log(" const [h, m] ", [h, m]);*/
+              //horas.push(`${h}:${m}`);
+              horas.push(i);
+              valores.push(valor);
+            }
+          }
+
+          const cantidadPresiones = valores.length;
+          resolve({ 
+            horas, 
+            valores, 
+            fecha, 
+            cantidadPresiones, 
+            airePromedioVentilado, 
+            divduracionFlujoAire, 
+            divtotalVentilaciones, 
+            divtiempoPromedioEntreVentilaciones, 
+            ritmoPresiones 
+          });
+        };
+        reader.onerror = () => reject('Error al leer el archivo.');
+        reader.readAsText(file);
+      });
+    }
+
+    // Función para calcular el máximo, mínimo y promedio
+    function calcularMaxMinProm(valores) {
+      let max = 0;
+      let min = 99;
+      let suma = 0;
+
+      valores.forEach(valor => {
+        if (valor >= max) max = valor;
+        if (valor <= min) min = valor;
+        suma += valor;
+      });
+
+      const promedio = suma / valores.length;
+      return { max, min, promedio };
+    }
+
+    // Función para generar el gráfico de línea
+    function generarGraficoLinea(horas, valores) {
+      if (chartInstance) {
+        chartInstance.destroy();
+      }
+      //console.log("valores  ",valores);
+      
+      chartInstance = new Chart(lineChartCtx, {
+        type: 'line',
+        data: {
+          labels: horas,
+          datasets: [{
+            label: 'Valores',
+            data: valores,
+            borderColor: 'rgba(0, 0, 0, 0.5)',
+            backgroundColor: 'rgba(13, 13, 222, 0.9)',
+            borderWidth: 2,
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: true },
+            annotation: {
+              annotations: {
+                box1: {
+                  type: 'box',
+                  yMin: 7,
+                  yMax: 16,
+                  backgroundColor: 'rgba(255, 0, 0, 0.3)',
+                  borderColor: 'rgba(255, 0, 0, 0.6)',
+                  borderWidth: 1,
+                },
+                box2: {
+                  type: 'box',
+                  yMin: 5,
+                  yMax: 7,
+                  backgroundColor: 'rgba(0, 255, 0, 0.3)',
+                  borderColor: 'rgba(0, 255, 0, 0.5)',
+                  borderWidth: 2,
+                },
+                box3: {
+                  type: 'box',
+                  yMin: 0,
+                  yMax: 5,
+                  backgroundColor: 'rgba(255, 0, 0, 0.3)',
+                  borderColor: 'rgba(255, 0, 0, 0.6)',
+                  borderWidth: 1,
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              title: { display: true, text: 'Hora' },
+              ticks: { color: 'black' }
+            },
+            y: {
+              title: { display: true, text: 'Cm.Presión' },
+              beginAtZero: true,
+              ticks: { color: 'black' }
+            }
+          }
+        }
+      });
+    }
+
+    // Función para generar el gráfico de barras con el promedio
+    function generarGraficoBarras(max, min, promedio, moda, cantidadPresiones) {
+      if (chartInstancePromedio) {
+        chartInstancePromedio.destroy();
+      }
+
+      chartInstancePromedio = new Chart(barPromedioChartCtx, {
+        type: 'bar',
+        data: {
+          labels: ["Máximo", "Mínimo", "Media", "Recurrente", cantidadPresiones>10?"Cant.Pres.x10": "Cant.Pres." ],
+          datasets: [{
+            label: 'Estadísticas',
+            data: [max, min, promedio, moda, cantidadPresiones>100?cantidadPresiones / 10: cantidadPresiones],
+            backgroundColor: [
+              'rgba(248, 25, 25, 0.6)', 
+              'rgba(248, 25, 25, 0.6)', 
+              moda >= 5 && moda <= 7? 'rgba(15, 154, 29, 0.6)' :'rgba(248, 25, 25, 0.4)',
+              moda >= 5 && moda <= 7? 'rgba(15, 154, 29, 0.6)' :'rgba(248, 25, 25, 0.4)',
+              'rgba(15, 200, 29, 0.6)',
+            ],
+            borderColor: 'rgba(0, 0, 0, 1)',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: true },
+            datalabels: {
+              display: true,
+              color: 'black',
+              font: {
+                weight: 'bold',
+                size: 12
+              },
+              formatter: function(value) {
+                return value !== undefined ? value.toFixed(2) : 'N/A'; // Verificar si el valor está definido
+              }
+            }
+          },
+          scales: {
+            x: {
+              title: { display: true, text: 'Cm. Presionados' },
+              ticks: { color: 'black' }
+            },
+            y: {
+              title: { display: true, text: 'Valores Estadísticos' },
+              ticks: { color: 'black' },
+              beginAtZero: false,
+              min: 1,
+            }
+          }
+        },
+        plugins: [ChartDataLabels]
+      });
+    }
+
+    // Función para generar el gráfico de barras de ventilación
+    function generarGraficoVenti(airePromedioVentilado, divduracionFlujoAire, divtotalVentilaciones, divtiempoPromedioEntreVentilaciones) {
+      if (barVentilacionChart) {
+        barVentilacionChart.destroy();
+      }
+
+      barVentilacionChart = new Chart(barVentilacionChartCtx, {
+        type: 'bar',
+        data: {
+          labels: ["Ml3.(x 10)", "Promedio Insuf.(segundos) ", "Total Ventilaciones", "Prom.Entre Insufla.(segundos)"],
+          datasets: [{
+            label: 'Estadísticas',
+            data: [airePromedioVentilado, divduracionFlujoAire, divtotalVentilaciones, divtiempoPromedioEntreVentilaciones ],
+            backgroundColor: [
+              airePromedioVentilado >= 45.0 && airePromedioVentilado <= 60.0 ? 'rgba(55, 255, 86, 0.6)' :'rgba(248, 25, 25, 0.4)', // Color para Aire Promedio
+              divduracionFlujoAire >= 3 && divduracionFlujoAire <= 7 ? 'rgba(55, 255, 86, 0.6)' :'rgba(248, 25, 25, 0.4)',  // Color para Duración Flujo
+              'rgba(50, 50, 150, 0.5)',  // Color para Total Ventilaciones
+              'rgba(50, 50, 150, 0.5)'  // Color para Tiempo Promedio (nuevo color)
+            ],
+            borderColor: 'rgba(0, 0, 0, 1)',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          indexAxis: 'x',
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: true },
+            datalabels: {
+              display: true,
+              color: 'black',
+              font: {
+                weight: 'bold',
+                size: 12
+              },
+              formatter: function(value) {
+                return value !== undefined ? value.toFixed(2) : 'N/A'; // Verificar si el valor está definido
+              }
+            }
+          },
+          scales: {
+            x: {
+              title: { display: false, text: 'Cm. Presionados' },
+              ticks: { color: 'black' }
+            },
+            y: {
+              title: { display: false, text: 'Estadísticos Insuflación' },
+              ticks: { color: 'black' },
+              beginAtZero: false,
+              min: 1,
+            }
+          }
+        },
+        plugins: [ChartDataLabels]
+      });
+    }
+
+    // Función para generar el gráfico de líneas de ritmo de presiones
+    function generarGraficoRitmo(ritmoPresiones) {
+      if (lineRitmoChart) {
+        lineRitmoChart.destroy();
+      }
+// Registrar el plugin de Data Labels antes de crear el gráfico
+
+      // Registrar correctamente el plugin
+    lineRitmoChart = new Chart(lineRitmoChartCtx, {
+        type: 'line',
+        data: {
+            labels: ritmoPresiones.map((_, index) => index > 0 ? `Intervalo ${index}` : ""),
+            datasets: [{
+                label: 'Ritmo de Presiones',
+                data: ritmoPresiones,
+                borderColor: 'rgba(255, 99, 132, 1)',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderWidth: 2,
+                pointBackgroundColor: 'rgba(255, 99, 132, 1)', // Hace los puntos visibles
+                pointRadius: 5, // Ajusta el tamaño de los puntos
+                datalabels: { // Asegura que cada dato se muestre
+                    display: true,
+                    color: "black",
+                    anchor: "end",
+                    align: "top",
+                    font: {
+                        weight: "bold",
+                        size: 12
+                    }
+                }
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: false }, // No queremos tooltips, solo valores visibles
+                datalabels: {
+                    display: true, // Asegura que los valores SIEMPRE estén visibles
+                    color: "black",
+                    anchor: "end",
+                    align: "top",
+                    font: {
+                        weight: "bold",
+                        size: 12
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    title: { display: true, text: 'Intervalos de 30 segundos' },
+                    ticks: { color: 'black' }
+                },
+                y: {
+                    title: { display: true, text: 'Ritmo de Presiones' },
+                    ticks: { color: 'black' },
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+
+    }
+
+    // Manejar la selección del archivo
+    document.getElementById("fileInput").addEventListener('change', async function () {
+      const file = this.files[0];
+      if (file) {
+        try {
+          const { 
+            horas, 
+            valores, 
+            fecha, 
+            cantidadPresiones, 
+            airePromedioVentilado, 
+            divduracionFlujoAire, 
+            divtotalVentilaciones, 
+            divtiempoPromedioEntreVentilaciones, 
+            ritmoPresiones 
+          } = await procesarArchivoCSV(file);
+
+          document.getElementById("fecha").textContent = fecha; // Mostrar fecha en HTML
+          
+          generarGraficoLinea(horas, valores); // Generar gráfico de línea
+          const moda = calcularModa(valores);
+          const { max, min, promedio } = calcularMaxMinProm(valores);
+          
+          generarGraficoBarras(max, min, promedio, moda, cantidadPresiones); 
+          console.log("datos   ", airePromedioVentilado, divduracionFlujoAire, divtotalVentilaciones, divtiempoPromedioEntreVentilaciones);;
+          
+          generarGraficoVenti(airePromedioVentilado, divduracionFlujoAire, divtotalVentilaciones, divtiempoPromedioEntreVentilaciones); 
+          generarGraficoRitmo(ritmoPresiones); // Generar gráfico de ritmo de presiones
+        } catch (error) {
+          alert(error);
+        }
+      } else {
+        alert('Por favor, selecciona un archivo.');
+      }
+    });
+  </script>
+</body>
+</html>

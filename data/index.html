@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./estilos.css">
+    <title>Página de inicio PEPPE</title>
+    <style>
+        /* Estilos adicionales si es necesario */
+    </style>
+</head>
+<body>
+    <div id="header">
+        <h2>Selecciona tu rol</h2>
+    </div>
+        <div class="container">
+            <button onclick="mostrarLogin()">Docente</button>
+            <div id="login" style="display: none;">
+                <form id="loginform" onsubmit="return verificarPasswd(event)">
+                    <label for="password">Contraseña</label>
+                    <input id="password" type="password" placeholder="Contraseña" name="password" required>
+                    <button type="submit" title="Ingresar" name="Ingresar">Login</button>
+                </form>
+            </div>
+            <button onclick="verificarConexiones('estudiante')">Estudiante</button>
+        </div>
+    </div>
+    <div style="border:lightslategrey;">
+        <div id="footer">
+            <p>&copy; 2025. ISPM Nro.1. Departamento de Investigación. Técnicatura Superior en Automatización y Robótica.</p>
+        </div>
+    </div>
+    <script>
+        // Conexión WebSocket
+        const socket = new WebSocket("ws://192.168.10.1:81");
+
+        let conexionesActivas = 0; // Variable para almacenar el número de conexiones activas
+
+        socket.onopen = () => {
+            console.log("Conexión WebSocket establecida");
+        };
+
+        socket.onerror = (error) => {
+            console.error("Error en WebSocket:", error);
+        };
+
+        socket.onclose = () => {
+            console.log("Conexión WebSocket cerrada");
+        };
+
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log("Mensaje recibido del servidor:", data);
+
+            if (data.type === "respuestaContrasena") {
+                if (data.valida && data.conexionesActivas < 3) {
+                    alert("Contraseña válida. Redirigiendo...");
+                    window.location.href = 'panelDocente.html';
+                } else if (!data.valida) {
+                    alert("Contraseña incorrecta");
+                } else {
+                    alert("Límite de conexiones alcanzado. Intente más tarde.");
+                }
+            } else if (data.type === "conexionesActivas") {
+                conexionesActivas = data.conexionesActivas;
+                if (conexionesActivas < 3) {
+                    window.location.href = 'panelEstudiante.html';
+                } else {
+                    alert("Límite de conexiones alcanzado. Intente más tarde.");
+                }
+            }
+        };
+
+        function mostrarLogin() {
+            document.getElementById("login").style.display = "block";
+        }
+
+        function verificarConexiones(rol) {
+            if (rol === 'estudiante') {
+                // Enviar solicitud para obtener el número de conexiones activas
+                const mensaje = JSON.stringify({ type: "obtenerConexionesActivas" });
+                socket.send(mensaje);
+            }
+        }
+
+        function verificarPasswd(event) {
+            event.preventDefault(); // Evita que el formulario se envíe automáticamente
+            const password = document.getElementById("password").value;
+
+            // Enviar la contraseña al servidor para validarla
+            const mensaje = JSON.stringify({ type: "validarContrasena", contrasena: password });
+            socket.send(mensaje);
+        }
+    </script>
+</body>
+</html>

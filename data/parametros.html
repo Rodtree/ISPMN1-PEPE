@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración de Parámetros</title>
+    <link rel="stylesheet" href="./estilos.css">
+    <link rel="stylesheet" href="./style2.css">
+</head>
+<body>
+    <div id="header">
+        <h2>Configuración de Parámetros</h2>
+        <div class="form-group" style="margin-bottom: 15px;">
+            <button id="grabar" type="button" onclick="volver()" style="background-color: #007BFF; color: white; border: none; border-radius: 5px; cursor: pointer;">Volver</button>
+        </div>
+    </div>
+
+    <div id="wrapper" >
+        <div style="height: 90%; width: 100%;">
+            <div style="padding: 10px;">
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <div class="etiqueta" style="display: block; margin-bottom: 5px; font-weight: bold;">Presión Máxima cm.:
+                        <input type="number" id="presionMax" required style="width: 20%; float:right; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        <img src="inf2.svg" alt="Icono 1" class="icono">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <div class="etiqueta" style="display: block; margin-bottom: 5px; font-weight: bold;">Presión Mínima cm.:
+                        <input type="number" id="presionMin" required style="width: 20%; float:right; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        <img src="sup2.svg" alt="Icono 2" class="icono">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <div class="etiqueta" style="display: block; margin-bottom: 5px; font-weight: bold;">Posición Horizontal:
+                        <label class="switch">
+                            <input type="checkbox" id="posicionHorizontal">
+                            <span class="slider"></span>
+                        </label>
+                        <img src="horizontal.png" class="icono">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <div class="etiqueta" style="display: block; margin-bottom: 5px; font-weight: bold;">Activar Resucitación:
+                        <label class="switch">
+                            <input type="checkbox" id="activaResureccion">
+                            <span class="slider"></span>
+                        </label>
+                        <img src="resucita.png" alt="Icono 4" class="icono">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+            <!-------------------------------------------->
+        <div style="height: 100%; width: 100%;">
+            <div>
+                <div class="form-group" style="margin-top:15px; margin-bottom: 15px;">
+                    <div class="etiqueta" style="display: block; margin-bottom: 5px; font-weight: bold;">Activar Insuflación:
+                        <label class="switch">
+                            <input type="checkbox" id="activaInsuflacion">
+                            <span class="slider"></span>
+                        </label>
+                            
+
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <div class="etiqueta" style="display: block; margin-bottom: 5px; font-weight: bold;">Insuflación Máxima(ml³):
+                        <input type="number" id="maxInsuflacion" required style="width: 20%; float:right; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        <img src="insuflaMin.svg" alt="Icono 7" class="icono">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <div class="etiqueta" style="margin-bottom: 5px; font-weight: bold;">Insuflación Mínina (ml³):
+                        <img src="insuflaMax.svg" alt="Icono 6" class="icono" >
+                        <input type="number" id="minInsuflacion" required style="width: 20%; float:right; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    </div>
+                    
+                </div>
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <div class="etiqueta" style="display: block; margin-bottom: 5px; font-weight: bold;">Complejidad General:
+                        <div class="range" style="margin-top: 25px;">
+                            <input type="range" min="1" max="5" value="1" id="complejidadRange" step="1" class="complejidad-slider">
+                            <div class="sliderticks">
+                                <span>1</span>
+                                <span>2</span>
+                                <span>3</span>
+                                <span>4</span>
+                                <span>5</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group" style="text-align: center;  margin-top: 40px; ">
+                    <button id="grabar" type="button" onclick="guardarValores()" style="width: 40%; padding: 10px; 
+                    background-color: #007BFF;color: white; border: none; border-radius: 5px; cursor: pointer;">Guardar</button>
+                </div>
+            </div>
+        </div>
+            <!-------------------------------------------->
+        <div style="height: 90%; width: 100%;">
+            
+            <div style="padding: 10px;">
+                <div class="help" style="height:80%;background-color: #ccc;"> 
+                    <div class="label" style="margin-bottom: 15px; font-weight: bold;">Ayuda Rápida </div>
+                    <iframe src="ayuda.html" width="100%" height="300px" style="border: 1px solid #ccc;"></iframe>
+                </div>
+            </div>  
+        </div>
+    </div>
+    <script>
+        // Cambiar el color del slider según el valor
+
+
+        function guardarValores() {
+            const presionMax = document.getElementById("presionMax").value;
+            const presionMin = document.getElementById("presionMin").value;
+            const activaInsuflacion = document.getElementById("activaInsuflacion").checked;
+            const maxInsuflacion = document.getElementById("maxInsuflacion").value;
+            const minInsuflacion = document.getElementById("minInsuflacion").value;
+            const posicionHorizontal = document.getElementById("posicionHorizontal").checked;
+            const activaResureccion = document.getElementById("activaResureccion").checked;
+            const complejidad = document.getElementById("complejidadRange").value;
+
+            document.getElementById("resultado").innerHTML = `
+                <h3>Parámetros Guardados</h3>
+                <p>Presión Máxima: ${presionMax} cm.</p>
+                <p>Presión Mínima: ${presionMin} cm.</p>
+                <p>Activar Insuflación: ${activaInsuflacion ? "Sí" : "No"}</p>
+                <p>Máximo ml³ de Insuflación: ${maxInsuflacion}</p>
+                <p>Mínimo ml³ de Insuflación: ${minInsuflacion}</p>
+                <p>Posición Horizontal: ${posicionHorizontal ? "Sí" : "No"}</p>
+                <p>Activar Resucitación: ${activaResureccion ? "Sí" : "No"}</p>
+                <p>Complejidad General: ${complejidad}</p>
+            `;
+        }
+
+        document.getElementById("grabar").addEventListener("click", () => {
+            // Resetear UI
+            receivingData = false;
+            socket.send(JSON.stringify({
+                type: "envioParametrosaESP",
+                presionMax: document.getElementById("presionMax").value,
+                presionMin: document.getElementById("presionMin").value,
+                activaInsuflacion: document.getElementById("activaInsuflacion").checked,
+                maxInsuflacion: document.getElementById("maxInsuflacion").value,
+                minInsuflacion: document.getElementById("minInsuflacion").value,
+                posicionHorizontal: document.getElementById("posicionHorizontal").checked,
+                activaResureccion: document.getElementById("activaResureccion").checked,
+                complejidad: document.getElementById("complejidadRange").value
+            }));
+        });
+    </script>
+
+    <div id="footer">
+        <object data="./bottom.html" ></object>
+    </div>
+</body>
+</html>
