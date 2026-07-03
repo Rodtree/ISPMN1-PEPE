@@ -68,6 +68,39 @@ eyeInfo_t eyeInfo[] = {
   {TFT2_CS, RH_WINK_PIN, TFT_2_ROT, EYE_2_XPOSITION}  // Ojo derecho
 };
 
+// ====== Buffer de renderizado y máquina de estados de parpadeo ======
+// NOTA: este bloque no estaba en el repo original. Falta en el código fuente
+// (el propio comentario en ojo_funciones.ino decía "definido en config.h" pero
+// nunca se llegó a escribir). Lo reconstruí a partir del ejemplo oficial
+// "Animated_Eyes" que trae la librería TFT_eSPI, que es la base de la que se
+// adaptó este código, ajustado a los pines/NUM_EYES ya definidos arriba.
+#define BUFFER_SIZE 1024 // 128 a 1024 es lo recomendado por TFT_eSPI
+#ifdef USE_DMA
+  #define BUFFERS 2 // 2 buffers alternados con DMA
+#else
+  #define BUFFERS 1 // 1 buffer sin DMA
+#endif
+uint16_t pbuffer[BUFFERS][BUFFER_SIZE]; // Buffer de renderizado de píxeles
+bool dmaBuf = 0;                        // Selección de buffer DMA
+
+#define NOBLINK 0 // No está parpadeando
+#define ENBLINK 1 // Párpado cerrándose
+#define DEBLINK 2 // Párpado abriéndose
+
+typedef struct {
+  uint8_t  state;      // NOBLINK/ENBLINK/DEBLINK
+  uint32_t duration;    // Duración del estado actual (micros)
+  uint32_t startTime;   // Momento (micros) del último cambio de estado
+} eyeBlink;
+
+struct { // Estructura por ojo
+  int16_t  tft_cs;    // Pin de chip select del display de este ojo
+  eyeBlink blink;     // Estado actual de parpadeo
+  int16_t  xposition; // Posición X de la imagen del ojo
+} eye[NUM_EYES];
+
+uint32_t startTime; // Usado para el cálculo de FPS en el loop de animación
+
 // Configuración de iris
 #define IRIS_SMOOTH
 #define IRIS_MIN 10    // 20/64 = 31% del tamaño máximo

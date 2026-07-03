@@ -136,7 +136,7 @@ void setup() {
     Serial.println("✅ AP iniciado. IP: " + WiFi.softAPIP().toString());
 
     server.on("/", HTTP_GET, []() {
-        File file = SPIFFS.open("/index.html", "r");
+        File file = SPIFFS.open("/html/index.html", "r");
         if (!file) {
             server.send(500, "text/plain", "Error al abrir index.html");
             return;
@@ -146,7 +146,7 @@ void setup() {
     });
 
     server.on("/panelEstudiante.html", HTTP_GET, []() {
-        File file = SPIFFS.open("/panelEstudiante.html", "r");
+        File file = SPIFFS.open("/html/panelEstudiante.html", "r");
         if (!file) {
             server.send(500, "text/plain", "Error al abrir panelEstudiante.html");
             return;
@@ -156,7 +156,7 @@ void setup() {
     });
 
     server.on("/panelDocente.html", HTTP_GET, []() {
-        File file = SPIFFS.open("/panelDocente.html", "r");
+        File file = SPIFFS.open("/html/panelDocente.html", "r");
         if (!file) {
             server.send(500, "text/plain", "Error al abrir panelDocente.html");
             return;
@@ -166,7 +166,7 @@ void setup() {
     });
 
     server.on("/generaInforme.html", HTTP_GET, []() {
-        File file = SPIFFS.open("/generaInforme.html", "r");
+        File file = SPIFFS.open("/html/generaInforme.html", "r");
         if (!file) {
             server.send(500, "text/plain", "Error al abrir generaInforme.html");
             return;
@@ -175,8 +175,8 @@ void setup() {
         file.close();
     });
 
-    server.on("/estilos.css", HTTP_GET, []() {
-        File file = SPIFFS.open("/estilos.css", "r");
+    server.on("/CSS/estilos.css", HTTP_GET, []() {
+        File file = SPIFFS.open("/CSS/estilos.css", "r");
         if (!file) {
             Serial.println("❌ Error al abrir estilos.css");
             server.send(500, "text/plain", "Error al abrir estilos.css");
@@ -188,8 +188,8 @@ void setup() {
         file.close();
     });
 
-    server.on("/style2.css", HTTP_GET, []() {
-        File file = SPIFFS.open("/style2.css", "r");
+    server.on("/CSS/style2.css", HTTP_GET, []() {
+        File file = SPIFFS.open("/CSS/style2.css", "r");
         if (!file) {
             Serial.println("❌ Error al abrir style2.css");
             server.send(500, "text/plain", "Error al abrir style2.css");
@@ -201,8 +201,8 @@ void setup() {
         file.close();
     });
 
-    server.on("/chart.js", []() {
-        File file = SPIFFS.open("/chart.js", "r");
+    server.on("/JS/chart.js", []() {
+        File file = SPIFFS.open("/JS/chart.js", "r");
         if (!file) {
             Serial.println("❌ Error al abrir libreria char.js");
             server.send(500, "text/plain", "Error al abrir libreria char.js");
@@ -213,8 +213,8 @@ void setup() {
         file.close();
     });
 
-    server.on("/timer.js", []() {
-        File file = SPIFFS.open("/timer.js", "r");
+    server.on("/JS/timer.js", []() {
+        File file = SPIFFS.open("/JS/timer.js", "r");
         if (!file) {
             Serial.println("❌ Error al abrir libreria timer.js");
             server.send(500, "text/plain", "Error al abrir libreria timer.js");
@@ -225,8 +225,8 @@ void setup() {
         file.close();
     });
 
-    server.on("/chartjs_annotation_min.js", []() {
-        File file = SPIFFS.open("/chartjs_annotation_min.js", "r");
+    server.on("/JS/chartjs_annotation_min.js", []() {
+        File file = SPIFFS.open("/JS/chartjs_annotation_min.js", "r");
         if (!file) {
             Serial.println("❌ Error al abrir libreria chartjs-plugin-annotation.min.js");
             server.send(500, "text/plain", "Error al abrir libreria chartjs-plugin-annotation.min.js");
@@ -237,8 +237,8 @@ void setup() {
         file.close();
     });
 
-    server.on("/chartjs-plugin-datalabels.js", []() {
-        File file = SPIFFS.open("/chartjs-plugin-datalabels.js", "r");
+    server.on("/JS/chartjs-plugin-datalabels.js", []() {
+        File file = SPIFFS.open("/JS/chartjs-plugin-datalabels.js", "r");
         if (!file) {
             Serial.println("❌ Error al abrir libreria chartjs-plugin-datalabels.js");
             server.send(500, "text/plain", "Error al abrir libreria chartjs-plugin-datalabels.js");
