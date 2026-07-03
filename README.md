@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/logoRobotica.png" alt="ISPM Nro. 1" width="140"/>
+<img src="assets/logoRobotica.png" alt="ISPM Nro. 1 - Automatización y Robótica" width="150"/>
 
 # 🫀 PEPE — Proyecto Experiencial Para Prácticas de Enfermería
 
@@ -9,7 +9,7 @@
 [![Platform](https://img.shields.io/badge/platform-ESP32-283F9F?logo=espressif&logoColor=white)](https://www.espressif.com/en/products/socs/esp32)
 [![Build](https://img.shields.io/badge/build-PlatformIO-E63235?logo=platformio&logoColor=white)](https://platformio.org/)
 [![Framework](https://img.shields.io/badge/framework-Arduino-283F9F?logo=arduino&logoColor=white)](https://www.arduino.cc/)
-[![Status](https://img.shields.io/badge/estado-completo%20y%20funcional-E63235)](#-estado-del-proyecto)
+[![Status](https://img.shields.io/badge/estado-en%20rework-E63235)](#-estado-del-proyecto)
 
 *Instituto Superior Politécnico Misiones Nro. 1 (ISPM Nro. 1)*
 *Tecnicatura Superior en Automatización y Robótica*
@@ -47,7 +47,9 @@ El robot no se limita a detectar las compresiones torácicas: también simula se
 
 ## 🏁 Estado del proyecto
 
-> ✅ **Completo y funcional**
+> 🔄 **Funcional — en proceso de rework**
+>
+> El robot funciona de punta a punta, pero actualmente estamos mejorando el código y reorganizando el proyecto (limpieza de firmware, orden de carpetas, etc.). Puede haber cambios frecuentes hasta que se estabilice de nuevo.
 
 ## 🔧 Hardware
 
