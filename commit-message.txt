@@ -1,0 +1,16 @@
+Reorganizar proyecto a estructura PlatformIO
+
+- Migrar de Arduino IDE a estructura estandar PlatformIO (src/, include/, data/)
+- Agregar platformio.ini con placa ESP32 y dependencias declaradas
+  (WebSockets, ArduinoJson, Adafruit VL6180X, TFT_eSPI)
+- Separar appRCP.aia (app mobile MIT App Inventor) en carpeta app/
+- Separar assets estaticos (logoPoli.png) en carpeta assets/
+- Mover defaultEye.h de data/ a include/: era un header de firmware
+  (array de bitmap del ojo) mal ubicado junto a los assets web servidos
+- Corregir el include roto de defaultEye.h en ojo_config.h
+- Quitar library.json: era el manifest de la libreria WebSockets, no del
+  proyecto (esa info ahora vive en platformio.ini)
+- Mover HTML sueltos no usados por el firmware a docs/borradores/
+  (index_.html, head-content.html)
+- Reescribir README con descripcion del proyecto, hardware, estructura
+  del repo e instrucciones de compilado/subida

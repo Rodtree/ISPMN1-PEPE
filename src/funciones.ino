@@ -347,4 +347,41 @@ void sendTiempoActual() {
     }
 }
 
+/*------------------*/
+// NOTA: esta función no existía en el repo original (se la llamaba desde
+// loop() en main.ino pero nunca se había escrito). La arme usando las
+// constantes de divisor de voltaje (R1, R2, Vmin, Vmax, VREF, alpha) que
+// ya estaban declaradas y calibradas en main.ino, pero está sin probar en
+// hardware real -- confirmá que el porcentaje resultante tenga sentido con
+// tu batería antes de confiar en el dato.
+void sendEstadoCargaBateria() {
+    // Filtro pasa-bajos sobre la lectura cruda del ADC
+    int rawADC = analogRead(pinBateria);
+    filteredADC = alpha * rawADC + (1.0 - alpha) * filteredADC;
+
+    // ADC (12 bits en ESP32) -> voltaje en el pin -> voltaje real de batería
+    // (se revierte el divisor resistivo R1/R2)
+    float pinVoltage = (filteredADC / 4095.0) * VREF;
+    float batteryVoltage = pinVoltage * (R1 + R2) / R2;
+
+    // Voltaje -> porcentaje, acotado entre 0 y 100
+    float porcentaje = (batteryVoltage - Vmin) / (Vmax - Vmin) * 100.0;
+    if (porcentaje > 100.0) porcentaje = 100.0;
+    if (porcentaje < 0.0) porcentaje = 0.0;
+
+    DynamicJsonDocument doc(128);
+    doc["type"] = "estadoBateria";
+    doc["voltaje"] = batteryVoltage;
+    doc["porcentaje"] = porcentaje;
+    String jsonString;
+    serializeJson(doc, jsonString);
+    webSocket.broadcastTXT(jsonString);
+
+    Serial.print("Batería: ");
+    Serial.print(batteryVoltage);
+    Serial.print("V (");
+    Serial.print(porcentaje);
+    Serial.println("%)");
+}
+
 #endif
