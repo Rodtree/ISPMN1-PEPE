@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/logoPoli.png" alt="ISPM Nro. 1" width="140"/>
+<img src="assets/logoRobotica.png" alt="ISPM Nro. 1" width="140"/>
 
 # 🫀 PEPE — Proyecto Experiencial Para Prácticas de Enfermería
 
