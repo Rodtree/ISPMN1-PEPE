@@ -5,8 +5,6 @@
 #define COLOR_PARPA  0xFD76   // mismo tono piel
 #define COLOR_IRIS   0x04BA  
 #define COLOR_IRIS_DARK 0x0380 // versión más oscura para variación
-#define LDRizquierdo 26
-#define LDRDerecho 33
 // ====== Variables para control de pupila por LDR ======
 uint16_t pupilSizeLeft = 50;// (IRIS_MIN + IRIS_MAX) / 2;
 uint16_t pupilSizeRight = 50; //(IRIS_MIN + IRIS_MAX) / 2;
@@ -45,7 +43,8 @@ void updateHemorrhage() {
       hemorrhageCount = random(1, 3);
       hemorrhagePositionX = random(30, 98);
       hemorrhagePositionY = random(30, 98);
-      
+
+      #ifdef DEBUG_EYES
       Serial.print("Hemorrhage active! Size: ");
       Serial.print(hemorrhageSize);
       Serial.print(", Position: (");
@@ -53,6 +52,7 @@ void updateHemorrhage() {
       Serial.print(",");
       Serial.print(hemorrhagePositionY);
       Serial.println(")");
+      #endif
     }
   }
 }
@@ -104,9 +104,11 @@ void updatePupilSizeFromLDR() {
   pupilSizeRight = (pupilSizeRight > 140)? 100 : pupilSizeRight;
   pupilSizeLeft = (pupilSizeLeft < 100)? 70 : pupilSizeLeft;
   pupilSizeRight = (pupilSizeRight < 100 )? 70 : pupilSizeRight;
-  
+
+  #ifdef DEBUG_EYES
   Serial.print("LDR Left: "); Serial.println(pupilSizeLeft);
   Serial.print("LDR Right: "); Serial.println(pupilSizeRight);
+  #endif
 }
 void updateEye(uint8_t e) {
   // ¡LLAMAR SIEMPRE primero!
@@ -243,10 +245,14 @@ void frame(uint8_t eyeIndex, uint16_t iScale) // Iris scale (0-1023)
   static uint8_t lThreshold = 10;  // CAMBIADO: De 100 a 40 (más bajo = párpado inferior más abajo)
   lThreshold = 254 - uThreshold;
   int n =lThreshold;
+  #ifdef DEBUG_EYES
   if (!(++frames & 255)) { // Every 256 frames...
     float elapsed = (millis() - startTime) / 1000.0;
     if (elapsed) Serial.println((uint16_t)(frames / elapsed)); // Print FPS
   }
+  #else
+  ++frames;
+  #endif
   // X/Y movement
 
   #if defined(JOYSTICK_X_PIN) && (JOYSTICK_X_PIN >= 0) && \

@@ -25,12 +25,14 @@
 #include <ArduinoJson.h>
 
 // ---- Variables externas esperadas del webServer.ino ----
+// (declaradas también en config.h; se repiten acá para que este header sea
+// autocontenido si se lo quiere reusar en otro sketch)
 extern bool  sendingData;
-//extern volatile int cuentaPresiones;    // se incrementa por compresión
 extern int   totalVentilaciones;        // se incrementa por ventilación
-//extern float lecturaMaximaCMPresion;    // baseline (cm)
+extern uint8_t lecturaMaximaCMPresion;  // baseline (cm), ver config.h
 extern float minRelativo, maxRelativo;  // relativos del ciclo
 extern bool  alcanzoMinimo;
+extern int   cuentaPresiones;           // se incrementa por compresión
 
 // ---- Estado local ----
 static uint32_t _sj_lastHelloMs = 0;
@@ -56,7 +58,7 @@ static void _sj_send_json(const JsonDocument &doc) {
 }
 
 static void _sj_send_hello() {
-  StaticJsonDocument<128> d;
+  JsonDocument d;
   d["type"]    = "hello";
   d["role"]    = "esp32";
   d["version"] = 1;
@@ -94,9 +96,9 @@ static void _sj_send_metrics() {
     if (n > 0 && sumMs > 0.0f) vent_rate = 60000.0f / (sumMs / n);
   }
 
-  StaticJsonDocument<192> d;
+  JsonDocument d;
   d["type"] = "metrics";
-  JsonObject p = d.createNestedObject("payload");
+  JsonObject p = d["payload"].to<JsonObject>();
   p["cpr_rate"]     = cpr_rate;
   p["cpr_depth_mm"] = _sj_lastDepthMM;
   p["vent_rate"]    = vent_rate;
@@ -118,7 +120,7 @@ static void serial_setup() {
 }
 
 static void _sj_handle_msg(const String &line) {
-  StaticJsonDocument<256> d;
+  JsonDocument d;
   if (deserializeJson(d, line)) return;
   const char* type = d["type"]; if (!type) return;
 
