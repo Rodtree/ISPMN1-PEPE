@@ -231,20 +231,9 @@ void handleWebSocketMessage(uint8_t *data, size_t len) {
         }
         sendDatosIniciales();
     }
-    /*-----------  validar acceso y cantidad de usuarios----*/
-    /*-----------  solo valido para el index ---------------*/
-        if (doc["type"] == "validarContrasena") {
-            String contrasena = doc["contrasena"].as<String>();
-            bool contrasenaValida = (contrasena == "123456789"); // Validar la contraseña
-    
-            DynamicJsonDocument respuesta(128);
-            respuesta["type"] = "respuestaContrasena";
-            respuesta["valida"] = contrasenaValida;
-            respuesta["conexionesActivas"] = conexionesActivas;
-            String jsonString;
-            serializeJson(respuesta, jsonString);
-            webSocket.broadcastTXT(jsonString); // Enviar respuesta al cliente
-        }
+    // NOTA: la validación de contraseña del docente se sacó de acá y pasó
+    // a ser una constante en el JS de index.html — no hacía falta que
+    // viajara por WebSocket, no es un dato que necesite protección real.
 }
 
 void sendDatosIniciales() {
