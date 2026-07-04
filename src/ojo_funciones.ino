@@ -457,3 +457,13 @@ void split( // Subdivides motion path into two sub-paths w/randimization
 }
 #endif // !LIGHT_PIN
 */
+
+// Agrupa todo lo que hay que llamar por vuelta de loop() para animar los
+// ojos — existe solo para que main.ino no tenga que conocer el detalle de
+// cuántos ojos hay ni en qué orden se actualizan.
+void actualizarOjos() {
+  for (uint8_t e = 0; e < NUM_EYES; e++) {
+    updateEye(e);
+  }
+  updateHemorrhage();
+}

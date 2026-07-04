@@ -358,10 +358,11 @@ void sendEstadoCargaBateria() {
     if (porcentaje > 100.0) porcentaje = 100.0;
     if (porcentaje < 0.0) porcentaje = 0.0;
 
+    // type/campo deben coincidir EXACTO con lo que espera panelDocente.html:
+    // if (data.type === "cargaBateria") ... data.porcentajeCargaBatt
     DynamicJsonDocument doc(128);
-    doc["type"] = "estadoBateria";
-    doc["voltaje"] = batteryVoltage;
-    doc["porcentaje"] = porcentaje;
+    doc["type"] = "cargaBateria";
+    doc["porcentajeCargaBatt"] = porcentaje;
     String jsonString;
     serializeJson(doc, jsonString);
     webSocket.broadcastTXT(jsonString);
@@ -371,6 +372,32 @@ void sendEstadoCargaBateria() {
     Serial.print("V (");
     Serial.print(porcentaje);
     Serial.println("%)");
+}
+
+/* ==========================================================================
+   Funciones "agrupadoras" de temporizado — existen solo para que loop()
+   en main.ino quede corto y legible. Cada una encapsula un temporizador
+   no bloqueante (patrón millis()) que antes vivía suelto dentro del loop.
+   ========================================================================== */
+
+// Cada 30 segundos (mientras hay una práctica en curso), reporta y reinicia
+// el contador de compresiones.
+void actualizarPresiones(unsigned long currentMillis) {
+    if (currentMillis - lastAverageTime < averageInterval) return;
+
+    lastAverageTime = currentMillis;
+    if (sendingData) {
+        sendPresiones();
+        cuentaPresiones = 0;
+    }
+}
+
+// Cada `batteryInterval` ms, mide y reporta la carga de la batería.
+void actualizarBateria(unsigned long currentMillis) {
+    if (currentMillis - lastBatteryCheck < batteryInterval) return;
+
+    lastBatteryCheck = currentMillis;
+    sendEstadoCargaBateria();
 }
 
 #endif

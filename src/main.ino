@@ -307,41 +307,33 @@ void setup() {
         //Serial.println("✅ Distancia de trabajo calculadas. ");
     }
 
+    // --- Sistema de ojos (pantallas TFT + reacción a la luz + derrame) ---
+    // NOTA: todo este subsistema ya estaba escrito en ojo_funciones.ino,
+    // pero nunca se llamaba desde ningún lado — tft.init()/initEyes() no
+    // se ejecutaban jamás, así que los ojos nunca hacían nada. Se agrega acá.
+    tft.init();
+    initEyes();
+    Serial.println("✅ Ojos inicializados.");
+
     Serial.println("🚀 Setup completo.");
 }
 
 void loop() {
     server.handleClient();
     webSocket.loop();
-    if (lecturaMaximaCMPresion <= 0) {
-        /*Serial.println("Calculando distancias de trabajo del sensor.");
-        lecturaMaximaCMPresion = (int)(sensor.readRange() / 100);
-        Serial.print("lecturaMaximaCMPresion  ");
-        Serial.println(lecturaMaximaCMPresion);
-        delay(300);
-        Serial.println("✅ Distancias de trabajo calculadas. ");*/
-    }
+
     sendDatos();
     sendTiempoActual();
     mideVentilacion();
-    unsigned long currentMillis = millis();
-  
-    if (currentMillis - lastAverageTime >= averageInterval) {
-      Serial.print("currentMillis - lastAverageTime >= averageInterval  ");
-      sendEstadoCargaBateria();
-      if (sendingData) {
-            Serial.println(currentMillis - lastAverageTime);
-            lastAverageTime = currentMillis;
-            sendPresiones();
-            cuentaPresiones = 0;                    
-        }
-    }      
-    delay(50);
-   // Control de tiempo para batería (no bloqueante)
-  if (millis() - lastBatteryCheck >= batteryInterval) {
-    sendEstadoCargaBateria();
-    lastBatteryCheck = millis();
-  }
+    actualizarOjos();
 
-  delay(10); // Reducir delay general
+    unsigned long currentMillis = millis();
+    actualizarPresiones(currentMillis);
+    actualizarBateria(currentMillis);
+
+    // Antes había 60ms de delay() bloqueante fijo (delay(50) + delay(10))
+    // sin ninguna razón documentada. Se reemplaza por un delay(1) mínimo,
+    // que es la práctica recomendada en ESP32 para dejarle aire al
+    // scheduler/WiFi sin frenar la respuesta del WebSocket ni la animación.
+    delay(1);
 }
