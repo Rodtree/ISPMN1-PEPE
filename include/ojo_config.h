@@ -5,6 +5,7 @@
 
 // Enable ONE of these #includes -- HUGE graphics tables for various eyes:
 #include "defaultEye.h"           // Standard human-ish hazel eye -OR-
+#pragma once
 //AZUL SCL 23
 //VERDE SCA 21
 //AMARILLO DC  2
@@ -24,16 +25,21 @@
 #define PUPIL_RIGHT_VARIATION 15    // ±30% variación ojo derecho
 
 // Configuración de displays GC9A01
-// NOTA: TFT_DC, TFT_RST, TFT_MOSI, TFT_SCLK, TFT_MISO, TFT_CS y el driver
-// (GC9A01_DRIVER) ahora se definen en build_flags de platformio.ini -- antes
-// estaban acá Y en el User_Setup.h por defecto de la librería TFT_eSPI al
-// mismo tiempo, lo que generaba warnings de "redefined" y, peor, dejaba
-// activo el driver por defecto de la librería en vez de GC9A01. Acá solo
-// quedan los pines de CS por-ojo, que son propios de este proyecto (no
-// son macros que use TFT_eSPI internamente).
+// Configuración CORREGIDA de pines:
 #define TFT_COUNT 2
-#define TFT1_CS 13     // de frente  Display derecho (CS)
-#define TFT2_CS 4      // de frente  Display izquierdo (CS) - Cambiado a pin 15
+#define TFT1_CS 13     // de frente  Display derecho (CS) 
+#define TFT2_CS 4    // de frente  Display izquierdo (CS) - Cambiado a pin 15
+#define TFT_DC 2      // Pin DC compartido
+#define TFT_RST -1    // Deshabilitar reset (o usar pin separado)
+#define TFT_MOSI 23   // MOSI (SDA)
+#define TFT_SCLK 18   // SCK (SCL)
+#define TFT_MISO -1   // No necesario
+//#define TFT_MOSI -1//23   // Pines SPI
+//#define TFT_SCLK -1//18
+//#define TFT_MISO -1   // No necesario para displays GC9A01
+//#define TFT_WIDTH  240   // Ancho en píxeles
+//#define TFT_HEIGHT 240   // Alto en píxeles (GC9D01 es circular, pero la resolución es 240x240)
+//#define SPI_FREQUENCY  20000000  // GC9A01 soporta hasta 40MHz
 
 // Rotaciones (prueba con 0, 1, 2 o 3 si no se ve correctamente)
 #define TFT_1_ROT 0   // Rotación display izquierdo
@@ -96,10 +102,7 @@ struct { // Estructura por ojo
 uint32_t startTime; // Usado para el cálculo de FPS en el loop de animación
 
 // Configuración de iris
-// NOTA: antes este bloque definía IRIS_SMOOTH/IRIS_MIN/IRIS_MAX y después
-// los "redefinía" bajo un #if !defined(...) que nunca se disparaba (ya
-// estaban definidos arriba, era código muerto). Se dejan una sola vez.
-#define IRIS_SMOOTH         // Si está activo, filtra la entrada de IRIS_PIN
+#define IRIS_SMOOTH
 #define IRIS_MIN 10    // 20/64 = 31% del tamaño máximo
 #define IRIS_MAX 90    // 64/64 = 100% del tamaño máximo
 
@@ -111,5 +114,14 @@ uint32_t startTime; // Usado para el cálculo de FPS en el loop de animación
   #define LIGHT_CURVE  0.33 // Light sensor adjustment curve
   #define LIGHT_MIN       50 // Minimum useful reading from light sensor
   #define LIGHT_MAX    2000 // Maximum useful reading from sensor
+
+#define IRIS_SMOOTH         // If enabled, filter input from IRIS_PIN
+#if !defined(IRIS_MIN)      // Each eye might have its own MIN/MAX
+  #define IRIS_MIN       10 // Iris size (0-1023) in brightest light
+#endif
+#if !defined(IRIS_MAX)
+  #define IRIS_MAX      90 // Iris size (0-1023) in darkest light
+#endif
+
 
 #endif
